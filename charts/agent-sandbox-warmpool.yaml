@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: agent-sandbox-warmpool
+  displayName: Agent Sandbox Warm Pool
+  description: Keeps a pool of pre-warmed agent sandboxes ready for instant claims — creates a SandboxTemplate and a SandboxWarmPool, both configurable via values. Requires the Agent Sandbox blueprint (with extensions) to be installed first.
+  category: ai
+  icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+  tags: [ai, agents, sandbox, warmpool]
+spec:
+  repository:
+    name: mogenius
+    url: https://helm.mogenius.com
+  chart:
+    name: mogenius/agent-sandbox-warmpool
+    version: "0.1.0"
+  install:
+    release: agent-sandbox-warmpool
+    namespace: agent-sandbox-system
+  values: |
+    # Pod template for the pre-warmed sandboxes
+    template:
+      image: python:3.13-slim
+      command: ["sleep", "infinity"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+
+    # Number of pre-warmed sandboxes kept ready
+    pool:
+      replicas: 2
+      updateStrategy: OnReplenish

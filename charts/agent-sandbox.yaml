@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: agent-sandbox
+  displayName: Agent Sandbox
+  description: Kubernetes-native runtime for isolated, stateful AI agent sandboxes (kubernetes-sigs/agent-sandbox) — installs the controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool). Add sandboxes via the Agent Sandbox Warm Pool or Claude Code Sandbox blueprints.
+  category: ai
+  icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+  tags: [ai, agents, sandbox, isolation]
+spec:
+  repository:
+    name: mogenius
+    url: https://helm.mogenius.com
+  chart:
+    name: mogenius/agent-sandbox
+    version: "0.5.1"
+  install:
+    release: agent-sandbox
+    namespace: agent-sandbox-system
+  values: |
+    # Extensions enable SandboxTemplate, SandboxClaim and SandboxWarmPool —
+    # required by the Agent Sandbox Warm Pool blueprint.
+    controller:
+      extensions: true
+
+    # Optional: create Sandbox instances together with the controller, e.g.
+    # sandboxes:
+    #   - name: demo-sandbox
+    #     spec:
+    #       podTemplate:
+    #         spec:
+    #           containers:
+    #             - name: sandbox
+    #               image: python:3.13-slim
+    #               command: ["sleep", "infinity"]
+    sandboxes: []

@@ -1,0 +1,21 @@
+# Entries to append to the `blueprints:` list in mogenius/helm-chart-blueprints index.yaml
+  - id: agent-sandbox
+    displayName: Agent Sandbox
+    description: Kubernetes-native runtime for isolated, stateful AI agent sandboxes — installs the controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool)
+    category: ai
+    icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+    tags: [ai, agents, sandbox, isolation]
+
+  - id: agent-sandbox-warmpool
+    displayName: Agent Sandbox Warm Pool
+    description: Keeps a pool of pre-warmed agent sandboxes ready for instant claims — SandboxTemplate and pool size configurable via values (requires Agent Sandbox)
+    category: ai
+    icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+    tags: [ai, agents, sandbox, warmpool]
+
+  - id: claude-sandbox
+    displayName: Claude Code Sandbox
+    description: Isolated agent sandbox with VS Code in the browser and Claude Code preinstalled — port-forward 8080 for the IDE, optional SSH on 2222 (requires Agent Sandbox)
+    category: ai
+    icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+    tags: [ai, agents, sandbox, claude, code-server]

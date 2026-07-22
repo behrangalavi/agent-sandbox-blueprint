@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: claude-sandbox
+  displayName: Claude Code Sandbox
+  description: Isolated agent sandbox with VS Code in the browser and Claude Code preinstalled — reach it via port-forward on 8080, optional SSH on 2222 for VS Code Remote-SSH. Requires the Agent Sandbox blueprint to be installed first.
+  category: ai
+  icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
+  tags: [ai, agents, sandbox, claude, code-server]
+spec:
+  repository:
+    name: mogenius
+    url: https://helm.mogenius.com
+  chart:
+    name: mogenius/claude-sandbox
+    version: "0.1.0"
+  install:
+    release: claude-sandbox
+    namespace: agent-sandbox-system
+  values: |
+    image:
+      repository: ghcr.io/mogenius/claude-sandbox
+      tag: "v2"
+
+    # Paste YOUR ssh public key to enable sshd on port 2222
+    # (VS Code Remote-SSH). sshd stays off when empty.
+    ssh:
+      authorizedKeys: ""
+
+    resources:
+      requests:
+        cpu: "1"
+        memory: 2Gi
+      limits:
+        cpu: "4"
+        memory: 8Gi

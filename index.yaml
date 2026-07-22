@@ -26,3 +26,10 @@ blueprints:
     category: security
     icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/keycloak/icon/color/keycloak-icon-color.svg
     tags: [sso, oidc, saml, identity, authentication, security]
+
+  - id: authentik
+    displayName: authentik
+    description: Open source identity provider — single sign-on with OpenID Connect, OAuth2, SAML and LDAP, flow-based MFA, self-service and application proxy, includes a bundled PostgreSQL for evaluation
+    category: security
+    icon: https://goauthentik.io/img/icon.svg
+    tags: [sso, oidc, saml, ldap, identity, authentication, security]

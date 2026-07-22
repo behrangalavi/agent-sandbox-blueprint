@@ -1,4 +1,4 @@
-# Entries to append to the `blueprints:` list in mogenius/helm-chart-blueprints index.yaml
+blueprints:
   - id: agent-sandbox
     displayName: Agent Sandbox
     description: Kubernetes-native runtime for isolated, stateful AI agent sandboxes — installs the controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool)

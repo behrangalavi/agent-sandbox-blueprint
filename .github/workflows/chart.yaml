@@ -110,5 +110,10 @@ jobs:
         with:
           charts_dir: helm
           skip_existing: true
+          # Keep the .tgz next to index.yaml on gh-pages. Release assets of a
+          # private repository need authentication, which `helm repo add` in
+          # the operator does not have; the Pages site is reachable anonymously.
+          packages_with_index: true
+          pages_branch: gh-pages
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

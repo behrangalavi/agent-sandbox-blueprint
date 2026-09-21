@@ -32,7 +32,7 @@ RuntimeClass (`gvisor` where available), security contexts, and the warm pool si
 `default` is what the mogenius Sandbox SDK claims from. Its image is built here
 (`images/sandbox-default`, published to `ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default`
 by `.github/workflows/image.yaml`): code-server on port 8080 (VS Code in the browser through the
-mogenius tunnel), Python 3 with uv, Node.js, git and build tools, running as uid 1000 with the
+mogenius tunnel), Python 3 with uv, Node.js, git, build tools and Claude Code, running as uid 1000 with the
 sandbox volume on `/home/coder/project`. `opencode` is a ready-made second profile, disabled by
 default.
 

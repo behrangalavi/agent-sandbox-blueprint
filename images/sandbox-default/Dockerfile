@@ -2,7 +2,7 @@
 #
 # VS Code in the browser (code-server) plus the tooling agents expect from a
 # Daytona-style default sandbox: Python 3 with pip/venv and uv, Node.js (from
-# the base image), git, curl, build tools. Runs as the unprivileged user
+# the base image), git, curl, build tools, and Claude Code. Runs as the unprivileged user
 # `coder` (uid 1000); the sandbox volume is mounted at /home/coder/project.
 #
 # code-server listens on 8080 without its own auth: sandboxes are only
@@ -25,6 +25,14 @@ RUN apt-get update \
 
 # uv: fast Python package manager, what most agent frameworks call today.
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+
+# Claude Code, globally via npm so it is on PATH for every user and both
+# architectures. Authentication happens per sandbox: set ANTHROPIC_API_KEY in
+# the profile's env (chart: sandboxes.profiles.<name>.env, e.g. from a Secret)
+# or run `claude` once and log in; ~/.claude lives outside the project volume.
+ARG CLAUDE_CODE_VERSION=latest
+RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+ && npm cache clean --force
 
 USER coder
 WORKDIR /home/coder/project

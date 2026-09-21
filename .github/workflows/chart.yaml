@@ -47,7 +47,7 @@ jobs:
       - run: |
           set -euo pipefail
           helm install asb helm/mogenius-agent-sandbox -n agent-sandbox-system --create-namespace --wait --timeout 5m
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 120); do
             ready=$(kubectl -n agent-sandbox get sandboxwarmpool default -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
             [ "${ready:-0}" -ge 1 ] && break
             sleep 5

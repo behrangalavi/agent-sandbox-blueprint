@@ -121,7 +121,7 @@ sandboxes:
       # The upstream Python runtime image (staging registry, no production tag
       # exists yet). Ships python3 and a shell. Replace with the mogenius
       # default sandbox image once published (see MOG-4695).
-      image: us-central1-docker.pkg.dev/k8s-staging-images/agent-sandbox/python-runtime-sandbox:latest-main
+      image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.0.0@sha256:816ad84b4a6a4597e315a5fea811613a6171e321c6d60cdde33735baca14a140
       imagePullPolicy: IfNotPresent
       containerName: sandbox
       # Empty = the image's entrypoint. For images without a long-running
@@ -131,11 +131,11 @@ sandboxes:
       env: []
       # The port the sandbox serves on; 8888 is the fleet-wide convention of
       # agent-sandbox tooling. Set 0 to expose no port.
-      port: 8888
+      port: 8080
       probes:
         # HTTP probes against `port`. Disable for images without an HTTP server.
         enabled: true
-        path: /
+        path: /healthz
       resources:
         requests:
           cpu: 250m
@@ -150,12 +150,17 @@ sandboxes:
         enabled: true
         size: 1Gi
         storageClassName: ""
-        mountPath: ""
+        mountPath: /home/coder/project
       # Per-profile RuntimeClass override; empty = sandboxes.runtimeClassName.
       runtimeClassName: ""
       # Pod- and container-level security contexts, passed through.
-      podSecurityContext: {}
-      securityContext: {}
+      podSecurityContext:
+        fsGroup: 1000
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       # Free-form additions merged into the pod spec (volumes, initContainers,
       # nodeSelector, tolerations …) and the container (volumeMounts …).

@@ -4,6 +4,7 @@ mogenius blueprints and the Helm chart behind the **Agent Sandbox** blueprint.
 
 ```
 charts/*.yaml                  HelmBlueprint definitions (what the platform lists)
+images/sandbox-default/        Dockerfile of the default sandbox image (code-server + Python)
 index.yaml                     blueprint index (what the platform reads first)
 helm/mogenius-agent-sandbox/   the chart the agent-sandbox blueprint installs
 hack/                          update-upstream, upgrade-crds, publish-chartmuseum
@@ -28,8 +29,12 @@ One release brings up the whole system, modelled on the paralov PoC
 
 Profiles are the knobs the platform UI edits: image, resources, storage, port and probes,
 RuntimeClass (`gvisor` where available), security contexts, and the warm pool size.
-`default` is what the mogenius Sandbox SDK claims from; `opencode` is a ready-made second
-profile, disabled by default.
+`default` is what the mogenius Sandbox SDK claims from. Its image is built here
+(`images/sandbox-default`, published to `ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default`
+by `.github/workflows/image.yaml`): code-server on port 8080 (VS Code in the browser through the
+mogenius tunnel), Python 3 with uv, Node.js, git and build tools, running as uid 1000 with the
+sandbox volume on `/home/coder/project`. `opencode` is a ready-made second profile, disabled by
+default.
 
 Network policy follows upstream's managed default (internet egress only, RFC1918 and
 link-local denied, ingress only from the upstream router). Two values change it:

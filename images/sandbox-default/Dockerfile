@@ -52,6 +52,12 @@ RUN mkdir -p /home/coder/.local/share/code-server/User \
  && printf '{ "workbench.startupEditor": "none", "telemetry.telemetryLevel": "off" }\n' \
       > /home/coder/.local/share/code-server/User/settings.json
 
+# Claude Code's first-run wizard asks for a theme and a login method even when
+# CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY are set; the browser login cannot
+# complete from inside a sandbox (localhost callback). Mark onboarding as done so
+# `claude` starts straight away and authenticates from the environment.
+RUN printf '{ "hasCompletedOnboarding": true, "theme": "dark" }\n' > /home/coder/.claude.json
+
 EXPOSE 8080
 # /healthz is code-server's health endpoint; the chart's probes use it.
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "/home/coder/project"]

@@ -121,7 +121,7 @@ sandboxes:
       # The upstream Python runtime image (staging registry, no production tag
       # exists yet). Ships python3 and a shell. Replace with the mogenius
       # default sandbox image once published (see MOG-4695).
-      image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.1.0@sha256:7bd35d005a33c0896f526333c5c9dd3569952b90a61813b04449864fc4cc0505
+      image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.1.1@sha256:f817e225217268ef1bfa1c0176ffd9900cc44cd54c3112432479b0c4f7517b74
       imagePullPolicy: IfNotPresent
       containerName: sandbox
       # Empty = the image's entrypoint. For images without a long-running

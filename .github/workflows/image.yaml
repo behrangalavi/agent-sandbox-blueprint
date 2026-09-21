@@ -64,6 +64,9 @@ jobs:
           docker run --rm "$img" uv --version
           docker run --rm "$img" code-server --version
           docker run --rm "$img" claude --version
+          docker run --rm "$img" node --version
+          docker run --rm "$img" tsx -e "console.log(1)"
+          docker run --rm "$img" git --version
           cid=$(docker run -d "$img")
           for _ in $(seq 1 30); do
             if docker exec "$cid" curl -sf http://127.0.0.1:8080/healthz >/dev/null; then ok=1; break; fi; sleep 2

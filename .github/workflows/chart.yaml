@@ -24,6 +24,15 @@ jobs:
             --set sandboxes.runtimeClassName=gvisor \
             --set 'sandboxes.networkPolicy.additionalBlockedCidrs={34.118.224.0/20}' \
             --set sandboxes.profiles.opencode.enabled=true >/dev/null
+      # A broken image string (whitespace, template leftovers) only shows up as
+      # InvalidImageName at runtime; catch it here for every profile.
+      - name: image references parse
+        run: |
+          set -euo pipefail
+          helm template t helm/mogenius-agent-sandbox -n agent-sandbox-system \
+            --set sandboxes.profiles.opencode.enabled=true \
+            | grep -E '^[[:space:]]*image:' | sed -E 's/^[[:space:]]*image:[[:space:]]*//; s/"//g' | tee /tmp/images.txt
+          ! grep -vE '^[a-z0-9]+([._-][a-z0-9]+)*(:[0-9]+)?(/[a-z0-9]+([._-][a-z0-9]+)*)*(:[A-Za-z0-9._-]+)?(@sha256:[0-9a-f]{64})?$' /tmp/images.txt
       - name: CRDs match appVersion
         run: |
           set -euo pipefail

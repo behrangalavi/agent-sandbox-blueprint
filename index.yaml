@@ -17,6 +17,46 @@ entries:
           name: sandboxwarmpools.extensions.agents.x-k8s.io
     apiVersion: v2
     appVersion: v1.0.2
+    created: "2026-09-21T13:38:35.013708039Z"
+    description: 'Complete agent-sandbox setup for a mogenius cluster: the kubernetes-sigs/agent-sandbox
+      controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool),
+      plus a sandbox namespace, a locked-down runtime ServiceAccount and configurable
+      sandbox profiles, each with its own SandboxTemplate and warm pool.'
+    digest: 7bec1ccd9f847fc0f0d7764c0eaab0e6b758ecd0531f7bc836b920034e3c9811
+    home: https://github.com/kubernetes-sigs/agent-sandbox
+    keywords:
+    - agent
+    - sandbox
+    - ai
+    - mogenius
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: mogenius
+      url: https://github.com/mogenius
+    name: mogenius-agent-sandbox
+    sources:
+    - https://github.com/kubernetes-sigs/agent-sandbox
+    - https://github.com/behrangalavi/agent-sandbox-blueprint
+    type: application
+    urls:
+    - mogenius-agent-sandbox-1.1.1.tgz
+    version: 1.1.1
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: Sandbox
+          version: v1beta1
+          name: sandboxes.agents.x-k8s.io
+        - kind: SandboxTemplate
+          version: v1beta1
+          name: sandboxtemplates.extensions.agents.x-k8s.io
+        - kind: SandboxClaim
+          version: v1beta1
+          name: sandboxclaims.extensions.agents.x-k8s.io
+        - kind: SandboxWarmPool
+          version: v1beta1
+          name: sandboxwarmpools.extensions.agents.x-k8s.io
+    apiVersion: v2
+    appVersion: v1.0.2
     created: "2026-09-21T13:21:29.30120785Z"
     description: 'Complete agent-sandbox setup for a mogenius cluster: the kubernetes-sigs/agent-sandbox
       controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool),
@@ -81,4 +121,4 @@ entries:
     urls:
     - mogenius-agent-sandbox-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-21T13:21:29.301223879Z"
+generated: "2026-09-21T13:38:35.013719345Z"

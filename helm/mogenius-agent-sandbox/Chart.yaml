@@ -7,7 +7,7 @@ description: >-
   profiles, each with its own SandboxTemplate and warm pool.
 type: application
 # Chart version — bump on every change to templates or values.
-version: 1.1.1
+version: 1.1.2
 # Upstream agent-sandbox release the CRDs and the controller default image come from.
 # Keep crds/ in sync via hack/update-upstream.sh when bumping.
 appVersion: v1.0.2

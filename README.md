@@ -33,8 +33,10 @@ RuntimeClass (`gvisor` where available), security contexts, and the warm pool si
 (`images/sandbox-default`, published to `ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default`
 by `.github/workflows/image.yaml`): code-server on port 8080 (VS Code in the browser through the
 mogenius tunnel), Python 3 with uv, Node.js, git, build tools and Claude Code, running as uid 1000 with the
-sandbox volume on `/home/coder/project`. `opencode` is a ready-made second profile, disabled by
-default.
+sandbox volume on `/home/coder/project`. Provider credentials come from the Secret
+`sandbox-provider-keys` in the sandbox namespace (`anthropic-api-key`, `claude-code-oauth-token`),
+injected as optional env into every profile; the Sandboxes page manages it. `opencode` is a
+ready-made second profile, disabled by default.
 
 Network policy follows upstream's managed default (internet egress only, RFC1918 and
 link-local denied, ingress only from the upstream router). Two values change it:

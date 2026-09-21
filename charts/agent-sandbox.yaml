@@ -20,7 +20,7 @@ spec:
     url: https://behrangalavi.github.io/agent-sandbox-blueprint
   chart:
     name: agent-sandbox-blueprint/mogenius-agent-sandbox
-    version: "1.1.1"
+    version: "1.1.2"
   install:
     release: agent-sandbox
     # Upstream expects the controller here; do not change.
@@ -60,9 +60,8 @@ spec:
             # Pre-started sandboxes kept ready for instant claims. 0 disables the pool.
             replicas: 1
 
-        # Optional second profile: an opencode agent server. Enable and create the
-        # Secret `opencode-provider-keys` (key `anthropic-api-key`) in the sandbox
-        # namespace first.
+        # Optional second profile: an opencode agent server. It reads the same
+        # `sandbox-provider-keys` Secret the Sandboxes page manages.
         opencode:
           enabled: false
           warmPool:

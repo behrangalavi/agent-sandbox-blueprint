@@ -121,14 +121,30 @@ sandboxes:
       # The upstream Python runtime image (staging registry, no production tag
       # exists yet). Ships python3 and a shell. Replace with the mogenius
       # default sandbox image once published (see MOG-4695).
-      image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.0.0@sha256:9fd43350bf28bfe389c18aaaa46b3abb8839a108e49aaa00983c03b3d229dfc0
+      image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.1.0@sha256:7bd35d005a33c0896f526333c5c9dd3569952b90a61813b04449864fc4cc0505
       imagePullPolicy: IfNotPresent
       containerName: sandbox
       # Empty = the image's entrypoint. For images without a long-running
       # entrypoint use ["sleep", "infinity"].
       command: []
       args: []
-      env: []
+      # Provider credentials for Claude Code / the Anthropic SDK. The Sandboxes
+      # page writes the Secret `sandbox-provider-keys`; both keys are optional so
+      # sandboxes start without it. Env is read at pod start: the page recycles
+      # the warm pool after saving a key.
+      env:
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sandbox-provider-keys
+              key: anthropic-api-key
+              optional: true
+        - name: CLAUDE_CODE_OAUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sandbox-provider-keys
+              key: claude-code-oauth-token
+              optional: true
       # The port the sandbox serves on; 8888 is the fleet-wide convention of
       # agent-sandbox tooling. Set 0 to expose no port.
       port: 8080
@@ -190,7 +206,7 @@ sandboxes:
         - name: ANTHROPIC_API_KEY
           valueFrom:
             secretKeyRef:
-              name: opencode-provider-keys
+              name: sandbox-provider-keys
               key: anthropic-api-key
               optional: true
       port: 8888

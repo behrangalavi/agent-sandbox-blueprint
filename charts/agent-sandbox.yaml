@@ -43,9 +43,10 @@ spec:
 
       profiles:
         default:
-          # Sandbox image: VS Code in the browser (code-server, port 8080) plus
-          # Python 3, uv, Node.js and git. Built from images/sandbox-default.
-          image: ghcr.io/behrangalavi/agent-sandbox-blueprint/sandbox-default:1.0.0@sha256:816ad84b4a6a4597e315a5fea811613a6171e321c6d60cdde33735baca14a140
+          # Image: the chart default (images/sandbox-default: VS Code in the
+          # browser on 8080 plus Python 3, uv, Node.js, git). Not pinned here
+          # on purpose, so chart upgrades move the image along; set
+          # `image:` only to run something else.
           resources:
             requests:
               cpu: 250m

@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(grep -E '^appVersion:' helm/mogenius-agent-sandbox/Chart.yaml | awk '{print $2}')"
-          curl -fsSL -o /tmp/upstream.yaml \
+          curl -fsSL --retry 5 --retry-delay 10 --retry-all-errors -o /tmp/upstream.yaml \
             "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/sandbox-with-extensions.yaml"
           # every CRD in crds/ must appear byte-identical in the upstream release
           for f in helm/mogenius-agent-sandbox/crds/*.yaml; do

@@ -1,0 +1,227 @@
+# mogenius-agent-sandbox — one chart that brings up the whole sandbox system.
+#
+# Two halves:
+#   controller.*  the kubernetes-sigs/agent-sandbox controller (with extensions),
+#                 installed into the release namespace — upstream expects
+#                 `agent-sandbox-system`, the blueprint installs it there.
+#   sandboxes.*   the sandbox namespace, the runtime ServiceAccount and one or
+#                 more *profiles*. A profile renders a SandboxTemplate and,
+#                 when `warmPool.replicas > 0`, a SandboxWarmPool. The mogenius
+#                 Sandbox SDK claims from the `default` profile unless told
+#                 otherwise; the platform UI edits these values.
+#
+# The security posture of the sandbox pods follows the paralov PoC
+# (paralov-poc/kubernetes/agent-sandbox): a ServiceAccount with no RBAC and no
+# projected token, egress to the internet only, no RFC1918, and an optional
+# RuntimeClass (gVisor) where the cluster has one.
+
+controller:
+  image:
+    repository: registry.k8s.io/agent-sandbox/agent-sandbox-controller
+    # Empty = the chart's appVersion (the upstream release the CRDs came from).
+    # Pin both together: CRDs and controller of different releases do not mix.
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  # Extensions (SandboxTemplate / SandboxClaim / SandboxWarmPool) are what the
+  # profiles below and the SDK rely on. Leave enabled.
+  extensions: true
+  leaderElect: true
+  # Additional controller flags, passed verbatim (e.g. "--zap-log-level=debug").
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  probes:
+    enabled: true
+  # The controller image is a distroless non-root image; these defaults satisfy
+  # Pod Security "restricted". Set to null to omit.
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  metrics:
+    # ClusterIP Service on the metrics port (8080), as upstream ships it.
+    service:
+      enabled: true
+  # Optional ConfigMap mounted at /etc/sandbox-config (upstream mounts it as
+  # optional). Leave empty unless upstream documents keys for it.
+  config: {}
+
+sandboxes:
+  namespace:
+    # Where sandbox pods live. Separate from the controller namespace on
+    # purpose: RBAC, quotas and Pod Security labels apply per namespace.
+    name: agent-sandbox
+    create: true
+    # e.g. pod-security.kubernetes.io/enforce: baseline
+    # ("restricted" breaks the debug-container fallback for shell-less images)
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    # Identity of every sandbox pod. Deliberately bound to nothing and with no
+    # token mounted: a sandbox reaching the apiserver authenticates as nobody.
+    # Do not add RoleBindings or cloud identity annotations to it.
+    name: sandbox-runtime
+    create: true
+    annotations: {}
+  # RuntimeClass for all profiles (e.g. "gvisor" on GKE Sandbox). Empty = none —
+  # Docker Desktop and kind have no RuntimeClass, a pod asking for one stays
+  # Pending. Profiles may override with their own `runtimeClassName`.
+  runtimeClassName: ""
+  # Headless Service per sandbox (`<sandbox>.<namespace>.svc`). Needed by the
+  # upstream router and handy for in-cluster access; the mogenius operator does
+  # not need it but it costs nothing.
+  service: true
+  networkPolicy:
+    # Managed: the controller creates a NetworkPolicy per sandbox from the
+    # template. Default rule set (when neither ingressFrom nor
+    # additionalBlockedCidrs is set): internet egress allowed, RFC1918 and
+    # link-local denied, ingress only from the upstream router pods.
+    managed: true
+    # Extra ingress peers, e.g. a router or gateway running elsewhere:
+    # - namespaceSelector:
+    #     matchLabels: { kubernetes.io/metadata.name: sandbox-router }
+    #   podSelector:
+    #     matchLabels: { app.kubernetes.io/name: sandbox-router }
+    ingressFrom: []
+    # Egress denies these on top of the internet-only default.
+    blockedCidrs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 169.254.0.0/16
+    # Service CIDRs outside RFC1918 need listing explicitly — on GKE the
+    # kube-apiserver ClusterIP sits in 34.118.224.0/20 and would otherwise be
+    # reachable from a sandbox (the pod carries no token, but block the socket too).
+    additionalBlockedCidrs: []
+    # IPv6 egress: everything except ULA and link-local.
+    blockedCidrsV6:
+      - fc00::/7
+      - fe80::/10
+
+  # Profiles: one SandboxTemplate (+ optional warm pool) each. The key is the
+  # template name. `default` is what the SDK claims without further options.
+  profiles:
+    default:
+      enabled: true
+      # The upstream Python runtime image (staging registry, no production tag
+      # exists yet). Ships python3 and a shell. Replace with the mogenius
+      # default sandbox image once published (see MOG-4695).
+      image: us-central1-docker.pkg.dev/k8s-staging-images/agent-sandbox/python-runtime-sandbox:latest-main
+      imagePullPolicy: IfNotPresent
+      containerName: sandbox
+      # Empty = the image's entrypoint. For images without a long-running
+      # entrypoint use ["sleep", "infinity"].
+      command: []
+      args: []
+      env: []
+      # The port the sandbox serves on; 8888 is the fleet-wide convention of
+      # agent-sandbox tooling. Set 0 to expose no port.
+      port: 8888
+      probes:
+        # HTTP probes against `port`. Disable for images without an HTTP server.
+        enabled: true
+        path: /
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+          ephemeral-storage: 512Mi
+        limits:
+          cpu: "2"
+          memory: 2Gi
+      storage:
+        # A PVC per sandbox, kept across stop/start. Empty mountPath = created
+        # but not mounted (the Python runtime manages /app itself).
+        enabled: true
+        size: 1Gi
+        storageClassName: ""
+        mountPath: ""
+      # Per-profile RuntimeClass override; empty = sandboxes.runtimeClassName.
+      runtimeClassName: ""
+      # Pod- and container-level security contexts, passed through.
+      podSecurityContext: {}
+      securityContext: {}
+      restartPolicy: OnFailure
+      # Free-form additions merged into the pod spec (volumes, initContainers,
+      # nodeSelector, tolerations …) and the container (volumeMounts …).
+      podSpecExtra: {}
+      containerExtra: {}
+      warmPool:
+        # Pre-warmed sandboxes kept ready; 0 = no pool (claims start cold).
+        replicas: 1
+        # OnReplenish (default) or Recreate — how pool sandboxes pick up
+        # template changes.
+        updateStrategy: OnReplenish
+
+    # Example second profile: an opencode server, mirrored from the paralov PoC.
+    # Enable and create the `opencode-provider-keys` Secret in the sandbox
+    # namespace before use.
+    opencode:
+      enabled: false
+      image: ghcr.io/anomalyco/opencode@sha256:d99f6cb95094eb9934ead4b600242e950ae6681d20c5a5f131a1c0a62208517f
+      imagePullPolicy: IfNotPresent
+      containerName: opencode
+      command: []
+      # The image's ENTRYPOINT is `opencode`; these are its arguments.
+      args: ["serve", "--hostname", "0.0.0.0", "--port", "8888"]
+      env:
+        - name: HOME
+          value: /workspace
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: opencode-provider-keys
+              key: anthropic-api-key
+              optional: true
+      port: 8888
+      probes:
+        enabled: true
+        path: /global/health
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+          ephemeral-storage: 1Gi
+        limits:
+          cpu: "4"
+          memory: 4Gi
+      storage:
+        enabled: true
+        size: 5Gi
+        storageClassName: ""
+        mountPath: /workspace
+      runtimeClassName: ""
+      # The image declares no USER; pin a non-root uid and make the PVC
+      # group-writable for it.
+      podSecurityContext:
+        fsGroup: 1000
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+      restartPolicy: OnFailure
+      podSpecExtra: {}
+      containerExtra: {}
+      warmPool:
+        replicas: 0
+        updateStrategy: OnReplenish

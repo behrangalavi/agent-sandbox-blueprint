@@ -1,0 +1,31 @@
+mogenius-agent-sandbox {{ .Chart.Version }} (agent-sandbox {{ include "mogenius-agent-sandbox.controllerTag" . }})
+
+Controller:   {{ .Release.Namespace }}/agent-sandbox-controller
+Sandboxes in: {{ include "mogenius-agent-sandbox.sandboxNamespace" . }}
+{{- range $name, $p := .Values.sandboxes.profiles }}
+{{- if $p.enabled }}
+Profile "{{ $name }}": image {{ $p.image }}, warm pool {{ default 0 $p.warmPool.replicas }}{{ with (default $.Values.sandboxes.runtimeClassName $p.runtimeClassName) }}, runtimeClass {{ . }}{{ end }}
+{{- end }}
+{{- end }}
+
+Check the pool:
+  kubectl -n {{ include "mogenius-agent-sandbox.sandboxNamespace" . }} get sandboxwarmpool,sandboxes,pods
+
+Claim a sandbox:
+  kubectl -n {{ include "mogenius-agent-sandbox.sandboxNamespace" . }} apply -f - <<EOF
+  apiVersion: extensions.agents.x-k8s.io/v1beta1
+  kind: SandboxClaim
+  metadata: { name: demo }
+  spec:
+    warmPoolRef: { name: default }
+    lifecycle: { shutdownPolicy: Delete }
+  EOF
+
+Connect through mogenius:
+  ssh <sandbox>.{{ include "mogenius-agent-sandbox.sandboxNamespace" . }}.<cluster>.mogenius
+
+Upgrades: Helm does not update CRDs in crds/. Before `helm upgrade` to a new
+appVersion run
+  kubectl apply --server-side -f <chart>/crds/
+(hack/upgrade-crds.sh does this). Installs on clusters with agent-sandbox
+< v0.5.0 must remove the old CRDs first; there is no in-place upgrade path.

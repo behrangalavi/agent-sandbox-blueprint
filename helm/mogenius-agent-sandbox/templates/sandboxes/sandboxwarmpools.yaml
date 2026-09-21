@@ -1,0 +1,27 @@
+{{- /*
+One SandboxWarmPool per enabled profile with replicas > 0. The pool keeps that
+many sandboxes pre-warmed so a claim binds in seconds instead of waiting for a
+pod to start.
+*/ -}}
+{{- $root := . }}
+{{- range $name, $p := .Values.sandboxes.profiles }}
+{{- if and $p.enabled $p.warmPool (gt (int (default 0 $p.warmPool.replicas)) 0) }}
+---
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxWarmPool
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "mogenius-agent-sandbox.sandboxNamespace" $root }}
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" $root | nindent 4 }}
+    mogenius.io/sandbox-profile: {{ $name }}
+spec:
+  replicas: {{ int $p.warmPool.replicas }}
+  sandboxTemplateRef:
+    name: {{ $name }}
+  {{- with $p.warmPool.updateStrategy }}
+  updateStrategy:
+    type: {{ . }}
+  {{- end }}
+{{- end }}
+{{- end }}

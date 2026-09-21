@@ -1,21 +1,14 @@
 blueprints:
   - id: agent-sandbox
     displayName: Agent Sandbox
-    description: Kubernetes-native runtime for isolated, stateful AI agent sandboxes — installs the controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool)
+    description: Complete agent sandbox system in one step — kubernetes-sigs/agent-sandbox controller with extensions, locked-down sandbox namespace and a default profile with a warm pool of pre-started sandboxes
     category: ai
     icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
-    tags: [ai, agents, sandbox, isolation]
-
-  - id: agent-sandbox-warmpool
-    displayName: Agent Sandbox Warm Pool
-    description: Keeps a pool of pre-warmed agent sandboxes ready for instant claims — SandboxTemplate and pool size configurable via values (requires Agent Sandbox)
-    category: ai
-    icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
-    tags: [ai, agents, sandbox, warmpool]
+    tags: [ai, agents, sandbox, isolation, warmpool]
 
   - id: claude-sandbox
     displayName: Claude Code Sandbox
-    description: Isolated agent sandbox with VS Code in the browser and Claude Code installed on startup — public components only, port-forward 8080 for the IDE (requires Agent Sandbox)
+    description: Isolated agent sandbox with VS Code in the browser and Claude Code installed on startup — public components only, port-forward 8080 for the IDE (requires the Agent Sandbox blueprint)
     category: ai
     icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
     tags: [ai, agents, sandbox, claude, code-server]

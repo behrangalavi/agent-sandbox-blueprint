@@ -1,0 +1,80 @@
+name: chart
+
+on:
+  pull_request:
+    paths: ["helm/**", ".github/workflows/chart.yaml"]
+  push:
+    branches: [main]
+    paths: ["helm/**", ".github/workflows/chart.yaml"]
+
+permissions:
+  contents: write # chart-releaser pushes the index to the gh-pages branch and creates releases
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint helm/mogenius-agent-sandbox
+      - name: render with default, GKE and multi-profile values
+        run: |
+          helm template t helm/mogenius-agent-sandbox -n agent-sandbox-system >/dev/null
+          helm template t helm/mogenius-agent-sandbox -n agent-sandbox-system \
+            --set sandboxes.runtimeClassName=gvisor \
+            --set 'sandboxes.networkPolicy.additionalBlockedCidrs={34.118.224.0/20}' \
+            --set sandboxes.profiles.opencode.enabled=true >/dev/null
+      - name: CRDs match appVersion
+        run: |
+          set -euo pipefail
+          VERSION="$(grep -E '^appVersion:' helm/mogenius-agent-sandbox/Chart.yaml | awk '{print $2}')"
+          curl -fsSL -o /tmp/upstream.yaml \
+            "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/sandbox-with-extensions.yaml"
+          # every CRD in crds/ must appear byte-identical in the upstream release
+          for f in helm/mogenius-agent-sandbox/crds/*.yaml; do
+            grep -qF -- "$(sed -n '3p' "$f")" /tmp/upstream.yaml || { echo "CRD $f not from $VERSION"; exit 1; }
+          done
+
+  # Installs the chart into a kind cluster and waits for a warm sandbox — the
+  # same check the local kit does on Docker Desktop.
+  install:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - uses: helm/kind-action@v1
+      - run: |
+          set -euo pipefail
+          helm install asb helm/mogenius-agent-sandbox -n agent-sandbox-system --create-namespace --wait --timeout 5m
+          for _ in $(seq 1 60); do
+            ready=$(kubectl -n agent-sandbox get sandboxwarmpool default -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
+            [ "${ready:-0}" -ge 1 ] && break
+            sleep 5
+          done
+          kubectl -n agent-sandbox get sandboxwarmpool,sandboxes,pods
+          [ "${ready:-0}" -ge 1 ] || { kubectl -n agent-sandbox describe pods; kubectl -n agent-sandbox-system logs deploy/agent-sandbox-controller --tail=100; exit 1; }
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [lint, install]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: configure git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - uses: azure/setup-helm@v4
+      # Publishes a GitHub Release per changed chart version and maintains
+      # index.yaml on the gh-pages branch, i.e. a classic Helm repository at
+      # https://<owner>.github.io/<repo>. For helm.mogenius.com use
+      # hack/publish-chartmuseum.sh instead.
+      - uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts_dir: helm
+          skip_existing: true
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

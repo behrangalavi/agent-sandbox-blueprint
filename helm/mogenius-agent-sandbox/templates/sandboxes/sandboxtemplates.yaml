@@ -1,0 +1,137 @@
+{{- /*
+One SandboxTemplate per enabled profile. The pod spec is assembled from the
+profile's flat values (image, port, probes, storage, …) plus free-form
+`podSpecExtra` / `containerExtra` for anything not modelled.
+*/ -}}
+{{- $root := . }}
+{{- $sb := .Values.sandboxes }}
+{{- range $name, $p := .Values.sandboxes.profiles }}
+{{- if $p.enabled }}
+{{- $rtc := default $sb.runtimeClassName $p.runtimeClassName }}
+{{- $containerName := default "sandbox" $p.containerName }}
+{{- $port := int (default 0 $p.port) }}
+---
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxTemplate
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "mogenius-agent-sandbox.sandboxNamespace" $root }}
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" $root | nindent 4 }}
+    mogenius.io/sandbox-profile: {{ $name }}
+spec:
+  podTemplate:
+    spec:
+      {{- with $rtc }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      serviceAccountName: {{ $sb.serviceAccount.name }}
+      automountServiceAccountToken: false
+      {{- with $p.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $containerName }}
+          image: {{ required (printf "sandboxes.profiles.%s.image is required" $name) $p.image }}
+          {{- with $p.imagePullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
+          {{- with $p.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $p.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $p.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if gt $port 0 }}
+          ports:
+            - containerPort: {{ $port }}
+              name: http
+          {{- if and $p.probes $p.probes.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ default "/" $p.probes.path | quote }}
+              port: {{ $port }}
+            initialDelaySeconds: 0
+            periodSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: {{ default "/" $p.probes.path | quote }}
+              port: {{ $port }}
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          {{- end }}
+          {{- end }}
+          {{- with $p.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $p.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if and $p.storage $p.storage.enabled $p.storage.mountPath }}
+          volumeMounts:
+            - name: workspace
+              mountPath: {{ $p.storage.mountPath }}
+          {{- end }}
+          {{- with $p.containerExtra }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      restartPolicy: {{ default "OnFailure" $p.restartPolicy }}
+      {{- with $p.podSpecExtra }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  service: {{ $sb.service }}
+  {{- if $sb.networkPolicy.managed }}
+  networkPolicyManagement: Managed
+  {{- if include "mogenius-agent-sandbox.explicitNetworkPolicy" $root }}
+  networkPolicy:
+    {{- with $sb.networkPolicy.ingressFrom }}
+    ingress:
+      - from:
+          {{- toYaml . | nindent 10 }}
+    {{- end }}
+    egress:
+      - to:
+          - ipBlock:
+              cidr: 0.0.0.0/0
+              except:
+                {{- range $sb.networkPolicy.blockedCidrs }}
+                - {{ . }}
+                {{- end }}
+                {{- range $sb.networkPolicy.additionalBlockedCidrs }}
+                - {{ . }}
+                {{- end }}
+          - ipBlock:
+              cidr: ::/0
+              except:
+                {{- range $sb.networkPolicy.blockedCidrsV6 }}
+                - {{ . }}
+                {{- end }}
+  {{- end }}
+  {{- else }}
+  networkPolicyManagement: Disabled
+  {{- end }}
+  {{- if and $p.storage $p.storage.enabled }}
+  volumeClaimTemplatesPolicy: Overrides
+  volumeClaimTemplates:
+    - metadata:
+        name: workspace
+      spec:
+        accessModes: [ReadWriteOnce]
+        {{- with $p.storage.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ default "1Gi" $p.storage.size }}
+  {{- end }}
+{{- end }}
+{{- end }}

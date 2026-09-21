@@ -1,0 +1,36 @@
+{{- $ns := .Values.sandboxes.namespace }}
+{{- if $ns.create }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns.name }}
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+    {{- with $ns.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $ns.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- $sa := .Values.sandboxes.serviceAccount }}
+{{- if $sa.create }}
+---
+# Identity of every sandbox pod. No RoleBinding anywhere grants it anything and
+# automountServiceAccountToken is false — a sandbox reaching the apiserver
+# authenticates as nobody. Keep it that way; do not annotate it with cloud
+# identities either.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $sa.name }}
+  namespace: {{ include "mogenius-agent-sandbox.sandboxNamespace" . }}
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+  {{- with $sa.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+automountServiceAccountToken: false
+{{- end }}

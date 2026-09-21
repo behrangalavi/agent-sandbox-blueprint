@@ -1,0 +1,40 @@
+apiVersion: v2
+name: mogenius-agent-sandbox
+description: >-
+  Complete agent-sandbox setup for a mogenius cluster: the kubernetes-sigs/agent-sandbox
+  controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool), plus a
+  sandbox namespace, a locked-down runtime ServiceAccount and configurable sandbox
+  profiles, each with its own SandboxTemplate and warm pool.
+type: application
+# Chart version — bump on every change to templates or values.
+version: 1.0.0
+# Upstream agent-sandbox release the CRDs and the controller default image come from.
+# Keep crds/ in sync via hack/update-upstream.sh when bumping.
+appVersion: v1.0.2
+kubeVersion: ">=1.25.0-0"
+keywords:
+  - agent
+  - sandbox
+  - ai
+  - mogenius
+home: https://github.com/kubernetes-sigs/agent-sandbox
+sources:
+  - https://github.com/kubernetes-sigs/agent-sandbox
+  - https://github.com/behrangalavi/agent-sandbox-blueprint
+maintainers:
+  - name: mogenius
+    url: https://github.com/mogenius
+annotations:
+  artifacthub.io/crds: |
+    - kind: Sandbox
+      version: v1beta1
+      name: sandboxes.agents.x-k8s.io
+    - kind: SandboxTemplate
+      version: v1beta1
+      name: sandboxtemplates.extensions.agents.x-k8s.io
+    - kind: SandboxClaim
+      version: v1beta1
+      name: sandboxclaims.extensions.agents.x-k8s.io
+    - kind: SandboxWarmPool
+      version: v1beta1
+      name: sandboxwarmpools.extensions.agents.x-k8s.io

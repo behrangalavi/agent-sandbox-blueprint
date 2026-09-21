@@ -3,34 +3,63 @@ kind: HelmBlueprint
 metadata:
   id: agent-sandbox
   displayName: Agent Sandbox
-  description: Kubernetes-native runtime for isolated, stateful AI agent sandboxes (kubernetes-sigs/agent-sandbox) — installs the controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool). Add sandboxes via the Agent Sandbox Warm Pool or Claude Code Sandbox blueprints.
+  description: >-
+    Brings up the complete agent sandbox system on this cluster in one step: the
+    kubernetes-sigs/agent-sandbox controller with extensions, a locked-down sandbox
+    namespace and a default sandbox profile with a warm pool of pre-started sandboxes.
+    Sandboxes are reachable through mogenius (terminal, SSH, port-forward) and the
+    mogenius Sandbox SDK claims from the default pool.
   category: ai
   icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
-  tags: [ai, agents, sandbox, isolation]
+  tags: [ai, agents, sandbox, isolation, warmpool]
 spec:
   repository:
     name: mogenius
     url: https://helm.mogenius.com
   chart:
-    name: mogenius/agent-sandbox
-    version: "0.5.1"
+    name: mogenius/mogenius-agent-sandbox
+    version: "1.0.0"
   install:
     release: agent-sandbox
+    # Upstream expects the controller here; do not change.
     namespace: agent-sandbox-system
   values: |
-    # Extensions enable SandboxTemplate, SandboxClaim and SandboxWarmPool —
-    # required by the Agent Sandbox Warm Pool blueprint.
-    controller:
-      extensions: true
+    sandboxes:
+      # Namespace the sandbox pods live in (created by the chart).
+      namespace:
+        name: agent-sandbox
 
-    # Optional: create Sandbox instances together with the controller, e.g.
-    # sandboxes:
-    #   - name: demo-sandbox
-    #     spec:
-    #       podTemplate:
-    #         spec:
-    #           containers:
-    #             - name: sandbox
-    #               image: python:3.13-slim
-    #               command: ["sleep", "infinity"]
-    sandboxes: []
+      # RuntimeClass for extra isolation, e.g. "gvisor" on GKE Sandbox.
+      # Leave empty on clusters without one (Docker Desktop, kind), a pod
+      # asking for a missing RuntimeClass never starts.
+      runtimeClassName: ""
+
+      networkPolicy:
+        # Egress: internet only, RFC1918 and link-local denied by default.
+        # Service CIDRs outside RFC1918 need listing, e.g. GKE: 34.118.224.0/20
+        additionalBlockedCidrs: []
+
+      profiles:
+        default:
+          # Sandbox image; ships python3 and a shell.
+          image: us-central1-docker.pkg.dev/k8s-staging-images/agent-sandbox/python-runtime-sandbox:latest-main
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          storage:
+            size: 1Gi
+          warmPool:
+            # Pre-started sandboxes kept ready for instant claims. 0 disables the pool.
+            replicas: 1
+
+        # Optional second profile: an opencode agent server. Enable and create the
+        # Secret `opencode-provider-keys` (key `anthropic-api-key`) in the sandbox
+        # namespace first.
+        opencode:
+          enabled: false
+          warmPool:
+            replicas: 0

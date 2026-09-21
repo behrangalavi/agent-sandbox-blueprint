@@ -1,0 +1,100 @@
+{{- /*
+RBAC mirrors the upstream v1.0.2 manifest (sandbox-with-extensions.yaml) exactly.
+When bumping appVersion, diff these rules against the upstream release.
+*/ -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agent-sandbox-controller
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agent-sandbox-controller
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [persistentvolumeclaims, pods, services]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: ["", events.k8s.io]
+    resources: [events]
+    verbs: [create, patch]
+  - apiGroups: [agents.x-k8s.io]
+    resources: [sandboxes]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: [agents.x-k8s.io]
+    resources: [sandboxes/finalizers, sandboxes/status]
+    verbs: [get, patch, update]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [create, get, list, patch, update, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agent-sandbox-controller
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agent-sandbox-controller
+subjects:
+  - kind: ServiceAccount
+    name: agent-sandbox-controller
+    namespace: {{ .Release.Namespace }}
+{{- if .Values.controller.extensions }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agent-sandbox-controller-extensions
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, patch, update, watch]
+  - apiGroups: ["", events.k8s.io]
+    resources: [events]
+    verbs: [create, patch, update]
+  - apiGroups: [agents.x-k8s.io]
+    resources: [sandboxes]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: [extensions.agents.x-k8s.io]
+    resources: [sandboxclaims, sandboxtemplates, sandboxwarmpools]
+    verbs: [create, delete, get, list, patch, update, watch]
+  - apiGroups: [extensions.agents.x-k8s.io]
+    resources:
+      - sandboxclaims/finalizers
+      - sandboxclaims/status
+      - sandboxtemplates/finalizers
+      - sandboxwarmpools/finalizers
+      - sandboxwarmpools/status
+    verbs: [get, patch, update]
+  - apiGroups: [networking.k8s.io]
+    resources: [networkpolicies]
+    verbs: [create, delete, get, list, patch, update, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agent-sandbox-controller-extensions
+  labels:
+    {{- include "mogenius-agent-sandbox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agent-sandbox-controller-extensions
+subjects:
+  - kind: ServiceAccount
+    name: agent-sandbox-controller
+    namespace: {{ .Release.Namespace }}
+{{- end }}

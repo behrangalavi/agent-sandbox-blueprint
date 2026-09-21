@@ -60,13 +60,15 @@ jobs:
         run: |
           set -euo pipefail
           img="${IMAGE}:${{ steps.meta.outputs.version }}"
-          docker run --rm "$img" python3 --version
-          docker run --rm "$img" uv --version
-          docker run --rm "$img" code-server --version
-          docker run --rm "$img" claude --version
-          docker run --rm "$img" node --version
-          docker run --rm "$img" tsx -e "console.log(1)"
-          docker run --rm "$img" git --version
+          # --entrypoint: the image's entrypoint is code-server, which would
+          # answer `--version` itself and hide a missing tool.
+          docker run --rm --entrypoint python3 "$img" --version
+          docker run --rm --entrypoint uv "$img" --version
+          docker run --rm --entrypoint node "$img" --version
+          docker run --rm --entrypoint tsx "$img" -e "console.log(1)"
+          docker run --rm --entrypoint claude "$img" --version
+          docker run --rm --entrypoint git "$img" --version
+          docker run --rm --entrypoint code-server "$img" --version
           cid=$(docker run -d "$img")
           for _ in $(seq 1 30); do
             if docker exec "$cid" curl -sf http://127.0.0.1:8080/healthz >/dev/null; then ok=1; break; fi; sleep 2

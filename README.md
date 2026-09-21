@@ -67,11 +67,14 @@ To move the chart to a new upstream release: `hack/update-upstream.sh v1.0.3`, t
 
 ### Publishing
 
-* **GitHub Pages** (automatic): the `release` job runs chart-releaser on pushes to `main`
-  and serves a Helm repository at `https://<owner>.github.io/agent-sandbox-blueprint`. Needs
-  GitHub Pages enabled on the `gh-pages` branch.
-* **helm.mogenius.com** (manual): `hack/publish-chartmuseum.sh` with the ChartMuseum
-  credentials in the environment. `charts/agent-sandbox.yaml` points here.
+* **GitHub Pages** (automatic, what `charts/agent-sandbox.yaml` points at today): the
+  `release` job runs chart-releaser on pushes to `main` that touch `helm/**`, creates the
+  `gh-pages` branch and the Pages site on first run, and serves the Helm repository at
+  `https://behrangalavi.github.io/agent-sandbox-blueprint`. Packages live in GitHub
+  Releases; only `index.yaml` is on the branch.
+* **helm.mogenius.com** (manual, target for customers): `hack/publish-chartmuseum.sh` with
+  the ChartMuseum credentials in the environment, then switch `repository` in
+  `charts/agent-sandbox.yaml` back to the `mogenius` alias.
 
 Keep `spec.chart.version` in `charts/agent-sandbox.yaml` in step with `Chart.yaml`.
 

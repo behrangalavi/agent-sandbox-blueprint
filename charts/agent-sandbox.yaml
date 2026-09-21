@@ -14,10 +14,12 @@ metadata:
   tags: [ai, agents, sandbox, isolation, warmpool]
 spec:
   repository:
-    name: mogenius
-    url: https://helm.mogenius.com
+    # Own alias on purpose: clusters usually already have `mogenius` pointing
+    # at helm.mogenius.com, and Helm resolves the chart through the alias.
+    name: agent-sandbox-blueprint
+    url: https://behrangalavi.github.io/agent-sandbox-blueprint
   chart:
-    name: mogenius/mogenius-agent-sandbox
+    name: agent-sandbox-blueprint/mogenius-agent-sandbox
     version: "1.0.0"
   install:
     release: agent-sandbox

@@ -17,6 +17,46 @@ entries:
           name: sandboxwarmpools.extensions.agents.x-k8s.io
     apiVersion: v2
     appVersion: v1.0.2
+    created: "2026-09-21T15:23:06.112973423Z"
+    description: 'Complete agent-sandbox setup for a mogenius cluster: the kubernetes-sigs/agent-sandbox
+      controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool),
+      plus a sandbox namespace, a locked-down runtime ServiceAccount and configurable
+      sandbox profiles, each with its own SandboxTemplate and warm pool.'
+    digest: 9638a451be8b47549dfdfcb0837eb77a7e6a5eeb3d444eb3925bfe5743ad6e25
+    home: https://github.com/kubernetes-sigs/agent-sandbox
+    keywords:
+    - agent
+    - sandbox
+    - ai
+    - mogenius
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: mogenius
+      url: https://github.com/mogenius
+    name: mogenius-agent-sandbox
+    sources:
+    - https://github.com/kubernetes-sigs/agent-sandbox
+    - https://github.com/behrangalavi/agent-sandbox-blueprint
+    type: application
+    urls:
+    - mogenius-agent-sandbox-1.1.4.tgz
+    version: 1.1.4
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: Sandbox
+          version: v1beta1
+          name: sandboxes.agents.x-k8s.io
+        - kind: SandboxTemplate
+          version: v1beta1
+          name: sandboxtemplates.extensions.agents.x-k8s.io
+        - kind: SandboxClaim
+          version: v1beta1
+          name: sandboxclaims.extensions.agents.x-k8s.io
+        - kind: SandboxWarmPool
+          version: v1beta1
+          name: sandboxwarmpools.extensions.agents.x-k8s.io
+    apiVersion: v2
+    appVersion: v1.0.2
     created: "2026-09-21T14:58:05.125799565Z"
     description: 'Complete agent-sandbox setup for a mogenius cluster: the kubernetes-sigs/agent-sandbox
       controller with extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool),
@@ -201,4 +241,4 @@ entries:
     urls:
     - mogenius-agent-sandbox-1.0.0.tgz
     version: 1.0.0
-generated: "2026-09-21T14:58:05.12581801Z"
+generated: "2026-09-21T15:23:06.113001185Z"

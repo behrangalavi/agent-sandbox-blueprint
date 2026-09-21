@@ -194,7 +194,7 @@ sandboxes:
     # namespace before use.
     opencode:
       enabled: false
-      image: ghcr.io/anomalyco/opencode@sha256:d99f6cb95094eb9934ead4b600242e950ae6681d20c5a5f131a1c0a62208517f
+      image: ghcr.io/anomalyco/opencode:latest@  {{- with (default (dict) $p.warmPool).updateStrategy }}
       imagePullPolicy: IfNotPresent
       containerName: opencode
       command: []

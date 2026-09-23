@@ -10,8 +10,7 @@
 #                 Sandbox SDK claims from the `default` profile unless told
 #                 otherwise; the platform UI edits these values.
 #
-# The security posture of the sandbox pods follows the paralov PoC
-# (paralov-poc/kubernetes/agent-sandbox): a ServiceAccount with no RBAC and no
+# The security posture of the sandbox pods: a ServiceAccount with no RBAC and no
 # projected token, egress to the internet only, no RFC1918, and an optional
 # RuntimeClass (gVisor) where the cluster has one.
 
@@ -189,7 +188,7 @@ sandboxes:
         # template changes.
         updateStrategy: OnReplenish
 
-    # Example second profile: an opencode server, mirrored from the paralov PoC.
+    # Example second profile: an opencode server (https://opencode.ai) as an agent-as-a-service.
     # Enable and create the `opencode-provider-keys` Secret in the sandbox
     # namespace before use.
     opencode:

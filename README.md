@@ -16,8 +16,7 @@ it reads `index.yaml` and `charts/<id>.yaml` from the `main` branch.
 
 ## The chart: `mogenius-agent-sandbox`
 
-One release brings up the whole system, modelled on the paralov PoC
-(`paralov-poc/kubernetes/agent-sandbox`) but generic:
+One release brings up the whole system:
 
 | Part | What it installs |
 | --- | --- |

@@ -1,9 +1,9 @@
 # agent-sandbox-blueprint
 
-mogenius blueprints and the Helm chart behind the **Agent Sandbox** blueprint.
+The mogenius **Agent Sandbox** blueprint: the Helm chart behind it and the default sandbox image.
 
 ```
-charts/*.yaml                  HelmBlueprint definitions (what the platform lists)
+charts/agent-sandbox.yaml      the HelmBlueprint definition (what the platform lists)
 images/sandbox-default/        Dockerfile of the default sandbox image (code-server + Python)
 index.yaml                     blueprint index (what the platform reads first)
 helm/mogenius-agent-sandbox/   the chart the agent-sandbox blueprint installs
@@ -84,9 +84,3 @@ To move the chart to a new upstream release: `hack/update-upstream.sh v1.0.3`, t
   `charts/agent-sandbox.yaml` back to the `mogenius` alias.
 
 Keep `spec.chart.version` in `charts/agent-sandbox.yaml` in step with `Chart.yaml`.
-
-## Other blueprints in this repo
-
-`claude-sandbox` renders a single `Sandbox` with code-server and Claude Code via the generic
-`bedag/raw` chart and requires the Agent Sandbox blueprint. `keycloak` and `authentik` are
-unrelated identity blueprints kept here for convenience.

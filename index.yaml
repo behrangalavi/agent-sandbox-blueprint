@@ -5,24 +5,3 @@ blueprints:
     category: ai
     icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
     tags: [ai, agents, sandbox, isolation, warmpool]
-
-  - id: claude-sandbox
-    displayName: Claude Code Sandbox
-    description: Isolated agent sandbox with VS Code in the browser and Claude Code installed on startup — public components only, port-forward 8080 for the IDE (requires the Agent Sandbox blueprint)
-    category: ai
-    icon: https://raw.githubusercontent.com/kubernetes-sigs/agent-sandbox/main/site/assets/icons/color_logo.svg
-    tags: [ai, agents, sandbox, claude, code-server]
-
-  - id: keycloak
-    displayName: Keycloak
-    description: Open source identity and access management — single sign-on with OpenID Connect, OAuth2 and SAML, user federation (LDAP / Active Directory) and social login, based on the official Keycloak image
-    category: security
-    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/keycloak/icon/color/keycloak-icon-color.svg
-    tags: [sso, oidc, saml, identity, authentication, security]
-
-  - id: authentik
-    displayName: authentik
-    description: Open source identity provider — single sign-on with OpenID Connect, OAuth2, SAML and LDAP, flow-based MFA, self-service and application proxy, includes a bundled PostgreSQL for evaluation
-    category: security
-    icon: https://goauthentik.io/img/icon.svg
-    tags: [sso, oidc, saml, ldap, identity, authentication, security]
